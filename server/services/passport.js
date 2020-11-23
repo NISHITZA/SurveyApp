@@ -13,12 +13,22 @@ passport.use(
         callbackURL: "/auth/google/callback",
       },
       (accessToken, refreshToken, profile, done) => {
-        console.log(profile);
-        new User({
-          googleId: profile.id
-        }).save()
-          .then(res=>console.log('data saved successfully'))
-          .catch(err=>console.log('the error is '+err))
+
+        User.findOne({ googleId: profile.id })
+          .then((existingUser)=>{
+            if(existingUser){
+              //User exists
+              done(null,existingUser);
+            }
+            else{
+              //New User
+              new User({
+                googleId: profile.id
+              }).save()
+                .then(user => done(null,user))
+                .catch(err=>console.log('the error is '+err))
+            }
+          })
       }
     )
   );
